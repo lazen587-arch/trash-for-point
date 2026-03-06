@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trash for Point - Video Grading</title>
+
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin-top: 30px; background: #f0f2f5; }
+  .page { display: none; background: white; padding: 25px; margin: auto; width: 90%; max-width: 500px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  
+  input, button { padding: 12px; margin: 8px 0; width: 100%; font-size: 16px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+  
+  /* สีปุ่มต่างๆ */
+  button { cursor: pointer; background-color: #28a745; color: white; border: none; font-weight: bold; transition: 0.3s; }
+  button:hover { background-color: #218838; }
+  .btn-secondary { background-color: #6c757d; }
+  .btn-info { background-color: #17a2b8; }
+  .btn-warning { background-color: #ffc107; color: black; }
+  .btn-danger { background-color: #dc3545; }
+  
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+  th, td { border: 1px solid #eee; padding: 12px; font-size: 14px; text-align: center; }
+  th { background-color: #f8f9fa; }
+  
+  video { width: 100%; border-radius: 8px; margin-top: 10px; background: #000; max-height: 200px; }
+  .score-display { font-size: 24px; font-weight: bold; color: #007bff; margin: 10px 0; }
+  .grading-box { display: flex; flex-direction: column; gap: 5px; }
+</style>
+</head>
+
+<body>
+
+<!-- หน้า 1 : Login -->
+<div id="page1" class="page">
+  <h2 style="color: #28a745;">Trash for Point</h2>
+  <p>เข้าสู่ระบบเพื่อจัดการขยะ</p>
+  <input id="user" type="text" placeholder="Username (student / teacher)">
+  <input id="pass" type="password" placeholder="Password (1111 / 1234)">
+  <button onclick="login()">เข้าสู่ระบบ</button>
+</div>
+
+<!-- หน้า 2 : เมนูนักเรียน -->
+<div id="page2" class="page">
+  <h2>โปรไฟล์นักเรียน</h2>
+  <div style="background: #e9ecef; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+    <p>สวัสดี: <strong>สมชาย ใจดี</strong></p>
+    <p>คะแนนสะสมปัจจุบัน</p>
+    <div class="score-display" id="score">0</div>
+  </div>
+  <button onclick="goPage(3)">📤 ส่งคลิปวิดีโอแยกขยะ</button>
+  <button class="btn-secondary" onclick="logout()">ออกจากระบบ</button>
+</div>
+
+<!-- หน้า 3 : นักเรียนส่งคลิป -->
+<div id="page3" class="page">
+  <h2>ส่งหลักฐานวิดีโอ</h2>
+  <p style="text-align: left; color: #666; font-size: 14px;">คำแนะนำ: อัปโหลดคลิปการคัดแยกขยะที่ถูกต้องเพื่อรับคะแนน</p>
+  <input type="file" id="wasteVideo" accept="video/*" style="border: 2px dashed #ccc; padding: 20px;">
+  <button onclick="sendWasteVideo()">ยืนยันการส่งคลิป</button>
+  <button class="btn-secondary" onclick="goPage(2)">ย้อนกลับ</button>
+</div>
+
+<!-- หน้า 6 : เมนูครู -->
+<div id="page6" class="page">
+  <h2>เมนูสำหรับคุณครู</h2>
+  <p>สิทธิ์การใช้งาน: ตรวจสอบและให้คะแนน</p>
+  <button onclick="goPage(8)" style="background: #007bff;">📋 รายการที่รอตรวจ</button>
+  <button class="btn-secondary" onclick="logout()">ออกจากระบบ</button>
+</div>
+
+<!-- หน้า 8 : ครูตรวจและเลือกให้คะแนน -->
+<div id="page8" class="page" style="max-width: 700px;">
+  <h2>รายการรอตรวจสอบ</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>นักเรียน</th>
+        <th width="40%">คลิปวิดีโอ</th>
+        <th>สถานะ</th>
+        <th>ให้คะแนน / จัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>สมชาย</td>
+        <td>
+          <div id="videoContainer">
+            <p id="noVideoText" style="color: #999;">ยังไม่มีการส่ง</p>
+          </div>
+        </td>
+        <td id="status1" style="font-weight: bold;">รอตรวจ</td>
+        <td>
+          <div class="grading-box">
+            <button onclick="approve(3)" class="btn-success" style="font-size: 12px; padding: 5px;">3 คะแนน (ดีมาก)</button>
+            <button onclick="approve(2)" class="btn-info" style="font-size: 12px; padding: 5px;">2 คะแนน (ดี)</button>
+            <button onclick="approve(1)" class="btn-warning" style="font-size: 12px; padding: 5px;">1 คะแนน (พอใช้)</button>
+            <button onclick="reject()" class="btn-danger" style="font-size: 12px; padding: 5px; margin-top: 5px;">ไม่อนุมัติ</button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <button class="btn-secondary" onclick="goPage(6)">กลับหน้าเมนู</button>
+</div>
+
+<script>
+let videoURL = ""; // เก็บ URL ของวิดีโอจำลอง
+
+function showPage(n){
+  document.querySelectorAll(".page").forEach(p => p.style.display="none");
+  document.getElementById("page"+n).style.display="block";
+}
+
+function login(){
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if(u === "student" && p === "1111"){
+    showPage(2);
+  } else if(u === "teacher" && p === "1234"){
+    showPage(6);
+  } else {
+    alert("Username หรือ Password ไม่ถูกต้อง\n(student/1111 หรือ teacher/1234)");
+  }
+}
+
+function logout(){
+  showPage(1);
+  document.getElementById("user").value = "";
+  document.getElementById("pass").value = "";
+}
+
+function goPage(n){
+  showPage(n);
+}
+
+// ฟังก์ชันนักเรียนส่งวิดีโอ
+function sendWasteVideo(){
+  const fileInput = document.getElementById("wasteVideo");
+  
+  if (fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    videoURL = URL.createObjectURL(file); // สร้าง Preview
+    
+    // ส่งวิดีโอไปแสดงในหน้าครู (Page 8)
+    const container = document.getElementById("videoContainer");
+    container.innerHTML = `<video controls><source src="${videoURL}" type="${file.type}"></video>`;
+    
+    document.getElementById("status1").innerText = "รอตรวจ";
+    document.getElementById("status1").style.color = "orange";
+    
+    alert("ส่งวิดีโอสำเร็จ! กรุณารอคุณครูตรวจสอบ");
+    showPage(2);
+  } else {
+    alert("กรุณาเลือกไฟล์วิดีโอก่อน");
+  }
+}
+
+// ฟังก์ชันครูอนุมัติและให้คะแนน (รับค่าคะแนน 1, 2, 3)
+function approve(points){
+  const statusTd = document.getElementById("status1");
+  const scoreSpan = document.getElementById("score");
+  
+  let label = "";
+  if(points === 3) label = "ดีมาก";
+  if(points === 2) label = "ดี";
+  if(points === 1) label = "พอใช้";
+
+  statusTd.innerText = "อนุมัติแล้ว (" + label + ") ✅";
+  statusTd.style.color = "green";
+  
+  // เพิ่มคะแนนตามที่เลือก
+  let currentScore = parseInt(scoreSpan.innerText);
+  scoreSpan.innerText = currentScore + points;
+  
+  alert("บันทึกการอนุมัติ: ให้คะแนน " + points + " แต้ม ระดับ " + label);
+}
+
+// ฟังก์ชันกรณีคลิปไม่ผ่าน
+function reject(){
+  const statusTd = document.getElementById("status1");
+  statusTd.innerText = "ไม่ผ่าน ❌";
+  statusTd.style.color = "red";
+  alert("ส่งผลการตรวจสอบ: ไม่ผ่าน");
+}
+
+// เริ่มต้นที่หน้า Login
+showPage(1);
+</script>
+
+</body>
+</html>
